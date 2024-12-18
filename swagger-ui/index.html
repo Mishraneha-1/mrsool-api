@@ -1,0 +1,75 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swagger UI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.52.0/swagger-ui.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.52.0/swagger-ui-bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.52.0/swagger-ui-standalone-preset.min.js"></script>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+
+  <script>
+    const ui = SwaggerUIBundle({
+      url: '/api-docs?apiType=location', // Default to 'location'
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIStandalonePreset
+      ],
+      layout: "StandaloneLayout"
+    });
+
+    // Listen for dropdown changes to switch API specs
+    const select = document.querySelector(".swagger-ui .server .servers select");
+    if (select) {
+      select.addEventListener("change", function() {
+        const selectedAPI = select.value;
+        if (selectedAPI === "Location API") {
+          ui.specActions.updateSpec('/api-docs?apiType=location');
+        } else if (selectedAPI === "Driver API") {
+          ui.specActions.updateSpec('/api-docs?apiType=driver');
+        }
+      });
+    }
+  </script>
+</body>
+</html> -->
+
+
+<!-- ///
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const yaml = require('js-yaml');
+
+const app = express();
+const port = 8080;
+
+// Serve Swagger UI assets from 'swagger-ui' folder
+app.use('/docs', express.static(path.join(__dirname, 'swagger-ui')));
+
+// Serve OpenAPI YAML files dynamically based on 'apiType' query
+app.get('/api-docs', (req, res) => {
+  const apiType = req.query.apiType || 'location'; // Default to 'location'
+  const specFile = apiType === 'driver' ? 'openapi-driver.yaml' : 'openapi-location.yaml';
+  const filePath = path.join(__dirname, 'api', specFile);
+
+  console.log(`Serving spec from: ${filePath}`);  // Log the file path for debugging
+
+  fs.exists(filePath, (exists) => {
+    if (exists) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send('API spec not found');
+    }
+  });
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Swagger UI available at http://localhost:${port}/docs`);
+}); -->

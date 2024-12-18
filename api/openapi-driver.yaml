@@ -1,0 +1,296 @@
+openapi: 3.0.0
+info:
+  title: Driver Service API
+  description: >
+    The Driver Service API provides endpoints for managing driver-related operations, such as driver
+    profiles, availability, assignments, and trip history. It enables seamless integration for tracking,
+    updating, and retrieving driver information in real time, ensuring efficient fleet management and
+    service operations.
+  version: 1.0.0
+servers:
+  - url: 'https://driver-service-810707138380.asia-south1.run.app'  
+tags:
+  - name: Driver_auth
+    description: Manage driver login, logout, and token-based session handling for secure access.
+  - name: Driver
+    description: Operations related to driver service
+paths:
+  /api/v1/driver/otp/send:
+    post:
+      tags:
+        - Driver_auth  
+      summary: Send OTP to Driver
+      description: Send a one-time password (OTP) to a driver's phone number.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendOTPRequest'
+      responses:
+        '200':
+          description: OTP Send successfully.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/SendOTPRequest'
+  /api/v1/driver/otp/verify:
+    post: 
+      tags:
+        - Driver_auth 
+      summary: Verify OTP
+      description: Verifies the OTP sent to the driver.
+      operationId: verifyOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOTPRequest'
+      responses:
+        '200':
+          description: OTP Verified successfully.
+  /api/v1/driver/logout:
+    post: 
+      tags:
+        - Driver_auth
+      summary: Logout the driver
+      description: Logs out the driver by invalidating the provided refresh token.
+      parameters:
+        - name: MRSOOL-CLIENT
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/MRSOOL-CLIENT'
+      requestBody:
+        description: The refresh token required to log out the driver.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Successful logout.
+        '400':
+          description: Bad request, invalid input.
+      security:
+        - BearerAuth: []              
+  /api/v1/driver/profile:
+    get:
+      tags:
+        - Driver
+      summary: Get Driver Profile
+      description: Retrieves the profile information of a driver.
+      operationId: Getdriverprofile
+      parameters:
+        - name: MRSOOL-CLIENT
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/MRSOOL-CLIENT'
+      responses:
+        '200':
+          description: Driver profile information retrieved successfully.
+        '401':
+          description: Unauthorized. Missing or invalid authorization token.
+      security:
+        - BearerAuth: []    
+  /api/v1/driver/trips:
+    get:
+      tags:
+        - Driver
+      summary: Fetch trips for a driver
+      description: Fetch a list of trips associated with a driver.
+      operationId: fetchTrips
+      parameters:
+        - name: MRSOOL-CLIENT
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/MRSOOL-CLIENT'
+    
+        - name: offset
+          in: query
+          description: The number of items to skip before starting to collect the result set.
+          required: true
+          schema:
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          description: The number of items to return.
+          required: true
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Successful response with a list of trips
+        '400':
+          description: Bad request
+      security:
+        - BearerAuth: []    
+  /api/v1/driver/trip/{id}:
+    get:
+      tags:
+        - Driver
+      summary: Fetch trips details
+      description: Fetch a list of trips associated with a driver using id.
+      operationId: Getdrivertrips
+      parameters:
+        - name: MRSOOL-CLIENT
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/MRSOOL-CLIENT'
+      
+        - name: id
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "f02ea5b0-4ae2-4422-8d70-eb7497e0419a"
+      responses:
+        "200":
+          description: Successful response with a list of trips
+        '400':
+          description: Bad request 
+      security:
+        - BearerAuth: []
+  /api/v1/driver/go_online:
+    post: 
+      tags:
+        - Driver
+      summary: Set Driver Online
+      description: Mark the driver as online and ready to accept rides.
+      parameters:
+        - name: MRSOOL-CLIENT
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/MRSOOL-CLIENT'
+      responses:
+        '200':
+          description: Driver marked as online successfully
+        '400':
+          description: Bad request 
+      security:
+        - BearerAuth: []    
+  /api/v1/driver/go_offline:
+    post: 
+      tags:
+        - Driver 
+      summary: Set Driver Offline 
+      description: Mark the driver as offline and  not ready to accept rides.
+      parameters:
+        - name: MRSOOL-CLIENT
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/MRSOOL-CLIENT'
+      responses:
+        "200": 
+          description: Driver marked as offline successfully
+        "400":
+          description: Bad request
+      security:
+        - BearerAuth: []              
+  /api/v1/driver/shift_status:
+    get:
+      tags:
+        - Driver
+      summary: Get Driver Shift Status
+      description: Retrieve the current shift status of the driver.
+      parameters:
+        - name: MRSOOL-CLIENT
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/MRSOOL-CLIENT'
+      responses:
+        '200':
+          description: Shift status retrieved successfully
+        '400':
+          description: Bad request  
+      security:
+        - BearerAuth: []              
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+  schemas:
+    MRSOOL-CLIENT:
+      type: string
+      enum:
+        - Android
+        - iOS
+        - Web
+    SendOTPRequest:
+      type: object
+      properties:
+        phone_country_code:
+          type: string
+          example: "+91"
+        phone:
+          type: string
+          example: "9310827605"
+        language:
+          type: string
+          example: "en"
+        platform:
+          type: string
+          example: "Android"
+        device_id:
+          type: string
+          example: ""
+        device_token:
+          type: string
+          example: ""
+        device_version:
+          type: string
+          example: ""
+        os_version:
+          type: string
+          example: ""
+        app_version:
+          type: string
+          example: ""
+        app_id:
+          type: string
+          example: ""
+    VerifyOTPRequest:
+      type: object
+      properties:
+        phone_country_code:
+          type: string
+          example: "+91"
+        phone:
+          type: string
+          example: "9310827605"
+        otp:
+          type: string
+          example: "1234"
+        language:
+          type: string
+          example: "en"
+        device_token:
+          type: string
+          example: ""
+        platform:
+          type: string
+          example: "iOS"
+        app_id:
+          type: string
+          example: ""
+    LogoutRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          description: The refresh token to be invalidated.
+      required:
+        - refresh_token
+    

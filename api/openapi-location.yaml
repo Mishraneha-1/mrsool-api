@@ -1,0 +1,860 @@
+openapi: 3.0.0
+info:
+  title: Location Service API
+  description: |- 
+    API documentation for fencing, region mapping, and serviceability operations.
+    This API provides a suite of endpoints to manage and analyze geospatial data for various use cases. 
+    It includes features to define and manage geographical boundaries (fencing), map and retrieve information about specific regions, 
+    and determine serviceability for locations. The service is designed to support applications like logistics, 
+    delivery zones, regional analytics, and more, ensuring accurate and efficient geolocation-based operations.
+  version: 1.0.0
+servers:
+  - url: 'https://location-service-810707138380.asia-south1.run.app'
+tags:
+  - name: Mapping Service
+    description: Handling geographic data to map locations, routes, or regions, often used in applications requiring location-based services.
+  - name: Fencing
+    description: Operations related to fencing
+  - name: Serviceable Region
+    description: Operations related to serviceable region 
+  - name: Raw Location
+    description: Operations related to raw location
+  - name: Service Account
+    description: Operations related to service accounts
+paths:
+  /api/v1/map/fencing:
+    post:
+      tags:
+        - Fencing
+      summary: Create Fencing
+      description: Creates a new fencing area with boundaries and related information.
+      operationId: fencingCreatePOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFencingRequest'
+        required: true
+      responses:
+        "201":
+          description: Fencing created successfully.
+        "400":
+          description: Invalid input.
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+  /api/v1/map/fencing/{latitude}/{longitude}:
+    get:
+      tags:
+        - Fencing
+      summary: Fetch Fencing
+      description: Fetch list of fencing
+      operationId: fencingFetchGET
+      parameters:
+      - name: latitude
+        in: path
+        required: true
+        schema:
+          type: number
+          example: 28.632974
+      - name: longitude
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: number
+          example: 77.214317
+      responses:
+        "200":
+          description: Fencing details retrieved.
+        "404":
+          description: Fencing not found. 
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default    
+  /api/v1/map/fencing/id/{id}:
+    get:
+      tags:
+        - Fencing
+      summary: Fencing by ID
+      description: Retrieves fencing details by ID.
+      operationId: fencingIdIdGET
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: b6227b86-20d1-4f18-9cd7-4f4dc7ee75e9
+      responses:
+        "200":
+          description: Fencing details retrieved.
+        "400":
+          description: Fencing details not found
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+  /api/v1/map/fencing/is_ride_serviceable:
+    post:
+      tags:
+        - Fencing
+      summary: Check if ride is serviceable
+      description: Verifies if a ride can be serviced between two points.
+      operationId: fencingIs_ride_serviceablePOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckRideServiceableRequest'
+        required: true
+      responses:
+        "200":
+          description: Serviceability status retrieved.
+        "400":
+          description: Status not found
+      security:
+        - ApiKeyAuth: []    
+      x-swagger-router-controller: Default
+  /api/v1/map/fencing/fencings:
+    post:
+      tags:
+        - Fencing
+      summary: Fetch fencings
+      description: Retrieve fencing data with pagination.
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          description: Pagination offset
+          schema:
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          required: false
+          description: Pagination limit
+          schema:
+            type: integer
+            example: 10
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the fencing to fetch
+                  example: ""
+      responses:
+        '200':
+          description: Fencing data fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FetchFencingRequest'
+        "404":
+          description: Fencing not found.
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+  /api/v1/map/fencing/cities:
+    get:
+      tags:
+        - Fencing
+      summary: Fetch Cities
+      description: Retrieve the list of cities.
+      operationId: fencingCitiesGET
+      responses:
+        "200":
+          description: Cities retrieved successfully.
+        "400":
+          description: Not found
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+  /api/v1/map/fencing/ride_serviceable_categories:
+    post:
+      tags:
+        - Fencing
+      summary: Get serviceable categories
+      description: Retrieve serviceable categories based on pickup and drop-off points.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pickUpPoint:
+                  type: object
+                  properties:
+                    latitude:
+                      type: number
+                      example: 27.3
+                    longitude:
+                      type: number
+                      example: 78.05
+                dropOffPoint:
+                  type: object
+                  properties:
+                    latitude:
+                      type: number
+                      example: 27.3
+                    longitude:
+                      type: number
+                      example: 78.05
+      responses:
+        '200':
+          description: Successful response with serviceable categories.
+        '400':
+          description: Not found
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+  /api/v1/map/fencing/{id}:
+    patch:
+      tags:
+        - Fencing
+      summary: Update fencing information
+      description: Updates details about the specified fencing area, including boundary coordinates, pickup, and dropoff points.
+      operationId: fencingUpdatePUT
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the fencing record.
+          schema:
+            type: string
+            example: 13f1b133-7927-48a5-a4ba-30b9309fafcf
+      requestBody:
+        description: The updated fencing details to be applied.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFencingRequest'
+      responses:
+        "200":
+          description: Fencing updated successfully.
+        "404":
+          description: Fencing area not found.
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+  /api/v1/map/serviceable_region:
+    post:
+      tags:
+        - Serviceable Region
+      summary: Create Region Mapping
+      description: Maps fencing regions to serviceable categories.
+      operationId: serviceable_regionCreatePOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRegionMappingRequest'
+        required: true
+      responses:
+        "201":
+          description: Region mapping created successfully.
+        "400":
+          description: Invalid input.
+      security:
+        - ApiKeyAuth: []    
+      x-swagger-router-controller: Default
+  /api/v1/map/serviceable_region/{id}:
+    patch:
+      tags:
+        - Serviceable Region
+      summary: Update Serviceable Region
+      description: Updates a serviceable region's details.
+      operationId: serviceable_regionIdPUT
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: f31b68f1-7992-4564-99eb-c2cadb5efe69
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateServiceableRegionRequest'
+        required: true
+      responses:
+        "200":
+          description: Serviceable region updated successfully.
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default  
+  /api/v1/map/serviceable_region/serviceable:
+    post:
+      tags:
+        - Serviceable Region
+      summary: Check if two regions are serviceable
+      description: Verifies serviceability between two fencing regions.
+      operationId: serviceable_regionServiceablePOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckRegionsServiceableRequest'
+        required: true
+      responses:
+        "200":
+          description: Serviceability status retrieved.
+        "400":
+          description: Not found  
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default        
+  /api/v1/map/serviceable_region/mappings:
+    post:
+      tags:
+        - Serviceable Region
+      summary: Fetch serviceable region mappings
+      description: Retrieve mappings for serviceable regions with optional pagination.
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          description: Offset for pagination.
+          schema:
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          required: false
+          description: Number of records to retrieve.
+          schema:
+            type: integer
+            example: 10
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: ""
+      responses:
+        "200":
+          description: Serviceable region mappings retrieved.
+        "400":
+          description: Not found
+      security:
+        - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+  /api/v1/location/trip_locations/{tripId}:
+    get:
+      tags:
+        - Raw Location
+      summary: Fetch Trip Locations
+      description: Retrieves location details for the specified trip ID.
+      operationId: fetchTripLocations
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          description: Unique identifier of the trip for which locations are to be fetched.
+          schema:
+            type: string
+            example: "f02ea5b0-4ae2-4422-8d70-eb7497e0419a"
+      responses:
+        "200":
+          description: Trip locations fetched successfully.
+        "404":
+          description: Trip not found.
+      security:
+        - ApiKeyAuth: []
+  /api/v1/service_account/create:
+    post:
+      tags:
+        - Service Account
+      summary: Create service account
+      description: Create a new service account
+      operationId: serviceCreatePost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/ServiceAccountRequest'  
+      responses:
+          "201":
+            description: Service account created successfully
+          "400":
+            description: Invalid input
+      # security:
+      #   - ApiKeyAuth: []  
+      x-swagger-router-controller: Default    
+  /api/v1/service_account/{id}:
+    get:
+      tags:
+        - Service Account
+      summary: Fetch service account
+      description: Fetch list of service account
+      operationId: serviceGet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the service account.
+          schema:
+            type: string
+            example: "a96dc597-3275-4571-b449-7a4f9e6da99f" 
+      responses:
+        "200":
+          description: A list of service account
+        "404":
+          description: Service account not found.
+      # security:
+      #   - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+  /api/v1/service_account:
+    post:
+      summary: Get a list of service accounts
+      description: Retrieves a paginated list of service accounts based on query parameters.
+      operationId: servicePost
+      tags:
+        - Service Account
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          description: The number of records to skip before starting to return results.
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          description: The maximum number of records to return.
+          schema:
+            type: integer
+            default: 10
+      responses:
+        200:
+          description: Successfully retrieved the list of service accounts.
+        400:
+          description: Bad request. 
+      # security:
+      #   - ApiKeyAuth: []
+      x-swagger-router-controller: Default     
+  /api/v1/service_account/{id}/:
+    delete:
+      tags:
+        - Service Account
+      summary: Delete a service account
+      description: Deletes a service account by its unique identifier.
+      operationId: serviceDelete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the service account.
+          schema:
+            type: string
+            example: b0fdc14b-4ee6-423a-8d8c-e6612bae8713
+      responses:
+        200:
+          description: Successfully deleted the service account.
+        404:
+          description: Service account not found.
+     # security:
+      #   - ApiKeyAuth: []
+      x-swagger-router-controller: Default 
+  /api/v1/service_account/reset_token/{id}:
+    put:
+      tags:
+        - Service Account
+      summary: Reset Token for a Service Account
+      description: Resets the token for the specified service account.
+      operationId: ServiceAccountResetPut
+      parameters:
+        - name: id
+          in: path
+          description: Unique identifier for the service account
+          required: true
+          schema:
+            type: string
+            example: d1b37399-9638-4533-8a5c-06ba946dd941
+      responses:
+        "200":
+          description: Token reset successfully
+        "404":
+          description: Service account not found.  
+      # security:
+      #   - ApiKeyAuth: []
+      x-swagger-router-controller: Default 
+  /api/v1/service_account/blacklist_account/{id}:
+    put:
+      tags:
+        - Service Account
+      summary: Blacklist a Service Account
+      description: Blacklists the specified service account, preventing it from accessing the system.
+      parameters:
+        - name: id
+          in: path
+          description: Unique identifier for the service account
+          required: true
+          schema:
+            type: string
+            example: 3035dda8-a9b1-456e-b552-5f08f9d3ffa6
+      responses:
+        '200':
+          description: Account blacklisted successfully
+        '404':
+          description: Service account not found 
+      # security:
+      #   - ApiKeyAuth: []
+      x-swagger-router-controller: Default
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    CreateFencingRequest:
+      type: object
+      properties:
+        name:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_name'
+        boundaryType:
+          type: string
+          example: REGION
+        boundary:
+          $ref: '#/components/schemas/CreateFencingRequest_boundary'  
+        pickup:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_pickup'
+        dropoff:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_dropoff'
+        zoomHeight:
+          type: integer
+          example: 500
+        houseNumber:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_houseNumber'
+        street:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_street'
+        city:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_city'
+        district:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_district'
+        state:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_state'
+        country:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_country'
+        postalCode:
+          type: string
+          example: "210001"
+        boundarySubType:
+            type: string
+            example: City
+        boundarySubTypeValue:    
+              type: string
+              example: Riyadh
+    CreateFencingRequest_name:
+      type: object
+      properties:
+        value:
+          type: string
+          example: Riyadh
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_boundary:
+      type: object
+      properties:
+        type:
+          type: string
+          example: Polygon
+        coordinates:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                example: 1.234
+          example:
+            -  [ [28.646745,77.220406],[28.631986,77.179992],[28.610890,77.213834], [28.640273,77.243035]]
+      required:
+        - type
+        - coordinates
+    CreateFencingRequest_name_1:
+      type: object
+      properties:
+        value:
+          type: string
+          example: Pickup Point 1
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_pickup:
+      type: object
+      properties:
+        name:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_name_1'
+        type:
+          type: string
+          example: Point
+        coordinates:
+          type: array
+          items:
+            type: number
+          example: [28.6150, 77.2350]
+    CreateFencingRequest_name_2:
+      type: object
+      properties:
+        value:
+          type: string
+          example: Dropoff Point 1
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_dropoff:
+      type: object
+      properties:
+        name:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest_name_2'
+        type:
+          type: string
+          example: Point
+        coordinates:
+          type: array
+          items:
+            type: number
+          example: [28.6250, 77.2450]
+    CreateFencingRequest_houseNumber:
+      type: object
+      properties:
+        value:
+          type: string
+          example: "123"
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_street:
+      type: object
+      properties:
+        value:
+          type: string
+          example: Main Street
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_city:
+      type: object
+      properties:
+        value:
+          type: string
+          example: Riyadh
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_district:
+      type: object
+      properties:
+        value:
+          type: string
+          example: Central
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_state:
+      type: object
+      properties:
+        value:
+          type: string
+          example: Uttar Pradesh
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_country:
+      type: object
+      properties:
+        value:
+          type: string
+          example: India
+        langName:
+          type: string
+          example: English
+    CreateFencingRequest_boundarySubType:
+      type: object
+      properties:
+        type:
+          type: string
+          example: City
+        value:
+          type: string
+          example: Agra
+        boundaryType:
+          type: string
+          example: REGION
+        boundary:
+          $ref: '#/components/schemas/CreateFencingRequest_boundary'
+      required:
+        - type
+        - value
+        - boundaryType
+        - boundary
+    FetchFencingRequest:
+      type: object
+      properties:
+        # name:
+        #   type: string
+        #   example: Sample Area
+        fencing_details: 
+          $ref: '#/components/schemas/CreateFencingRequest' 
+    CreateRegionMappingRequest:
+      type: object
+      properties:
+        fencingIds:
+          type: array
+          items:
+            type: string
+          example:
+            - "07c7483d-3310-494c-aa8b-b9f5df67385b"
+            - "07c7483d-3310-494c-aa8b-b9f5df67385b"
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateRegionMappingRequest_categories'
+          example:
+            - id: 1
+              name: "Standard"
+            - id: 2
+              name: "Premium"
+        fencing_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateFencingRequest'
+        operational:
+          type: boolean      
+    CreateRegionMappingRequest_categories:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: [Standard]
+    CheckRideServiceableRequest_pickUpPoint:
+      type: object
+      properties:
+        latitude:
+          type: number
+          example: 27.3
+        longitude:
+          type: number
+          example: 78.05
+    CheckRideServiceableRequest:
+      type: object
+      properties:
+        pickUpPoint:
+          $ref: '#/components/schemas/CheckRideServiceableRequest_pickUpPoint'
+        dropOffPoint:
+          $ref: '#/components/schemas/CheckRideServiceableRequest_pickUpPoint'
+        categories:
+          type: string
+          example: ["Standard"]    
+    UpdateServiceableRegionRequest:
+      type: object
+      properties:
+        fencingIds:
+          type: array
+          items:
+            type: string
+          example:
+            - "07c7483d-3310-494c-aa8b-b9f5df67385b"
+            - "07c7483d-3310-494c-aa8b-b9f5df67385b"  
+        operational:
+          type: boolean
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpdateServiceableRegionRequest_categories'
+    CheckRegionsServiceableRequest:
+      type: object
+      properties:
+        fencingIds:
+          type: array
+          items:
+            type: string
+          example:
+            - "07c7483d-3310-494c-aa8b-b9f5df67385b"
+            - "07c7483d-3310-494c-aa8b-b9f5df67385b"
+    UpdateServiceableRegionRequest_categories:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        name:
+          type: string
+          example: Extra Space
+    TripLocation:
+      type: object
+      properties:
+        latitude:
+          type: number
+          example: 28.6139
+        longitude:
+          type: number
+          example: 77.2090
+        timestamp:
+          type: string
+          format: date-time
+          example: "2023-12-01T14:30:00Z"
+    ServiceAccountRequest:
+      type: object
+      properties:
+        user:
+          type: string
+          example: Advantium
+        type:
+          type: string
+          example: ACCESS
+      required:
+        - user
+        - type

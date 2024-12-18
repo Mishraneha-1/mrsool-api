@@ -1,0 +1,144 @@
+openapi: 3.0.0
+info:
+  title: Customer Service API
+  description: >
+    The Customer Service API offers endpoints for managing customer-related operations, such as customer management,
+    including profiles and activity history. It provides real-time capabilities for 
+    tracking and retrieving customer information, ensuring efficient customer support and 
+    service delivery.
+
+
+    <br>
+    **Note:**  
+    **We need the Mrsool Auth Token** to access this API.
+
+  version: 1.0.0
+servers:
+  - url: 'https://driver-service-810707138380.asia-south1.run.app' 
+tags:
+  - name: Customer_auth
+    description: Manage customer login, logout, and token-based session handling for secure and personalized access.
+  - name: Customer
+    description: Manage customer-related operations, including profile management, preferences, and activity history.
+paths:        
+  /api/v1/customer/profile:
+    get:
+      tags:
+        - Customer 
+      summary: Get Customer Profile
+      description: Retrieves the profile information of a customer.
+      operationId: Getcustomerprofile
+      responses:
+        "200":
+          description: Successful response with a list of customer information
+        '400':
+          description: Bad request     
+  /api/v1/customer/trips:
+    get: 
+      tags:
+        - Customer
+      summary: Fetch trips
+      description: Fetches a list of trips based on the provided search criteria, with pagination support. 
+      operationId: FetchtripsPost
+      parameters:
+        - name: offset
+          in: query
+          description: The number of items to skip before starting to collect the result set.
+          required: true
+          schema: 
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          description: The number of items to return.
+          required: true
+          schema: 
+            type: integer
+            example: 10
+      responses:
+        "201":
+          description: A list of trips.
+        '400':
+          description: Invalid input provided.    
+  /api/v1/customer/trip/{id}:
+    get:
+      tags:
+        - Customer
+      summary: Fetch trips details by id
+      description: Fetch a list of trips associated with a customer using id.
+      operationId: Getcustomertrips
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: f02ea5b0-4ae2-4422-8d70-eb7497e0419a
+      responses:
+        "200":
+          description: Successful response with a list of trips
+        '400':
+          description: Bad request    
+  /api/v1/customer/otp/send:
+    post: 
+      tags:
+        - Customer_auth
+      summary: Send OTP to Customer
+      description: Send a one-time password (OTP) to a customer's phone number.
+      requestBody: 
+        required: true
+        content:
+          appilcation/json:
+            schema: 
+              $ref: '#/components/schemas/SendOtpRequest'
+      responses:
+        "200": 
+          description: OTP sent successfully
+        '400':
+          description: Bad request
+  /api/v1/customer/otp/verify:
+    post: 
+      tags:
+        - Customer_auth
+      summary: Verify OTP 
+      description: Verifies the OTP sent to the customer.
+      operationId: VerifyOtp
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:   
+              $ref: '#/components/schemas/VerifyOtpRequest'
+      responses:
+        '200':
+          description: OTP verification successful 
+        '400':
+          description: Invalid OTP
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  
+  schemas:
+    SendOtpRequest:  
+      type: object
+      properties:
+        phone_number:
+          type: string
+          example: "8888888881"
+    VerifyOtpRequest:
+      type: object
+      properties:
+        id_token:
+          type: string
+          description: The ID token of the customer.
+          example: e4d603f0-ef2e-468c-926f-bad724da8a27
+        otp:
+          type: string
+          description: The one-time password provided to the customer.
+          example: '1234'
+      required:
+        - id_token
+        - otp    
+    
